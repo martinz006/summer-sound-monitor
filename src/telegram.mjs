@@ -19,23 +19,25 @@ export function formatDealMessage(item) {
   const distance = item.distanceKm == null ? 'nav droši nolasīts' : item.distanceKm + ' km';
   const location = item.location ? item.location : 'nav droši redzama sarakstā';
   const cancellation = item.freeCancellation == null ? 'nezināms' : item.freeCancellation ? 'jā' : 'nē';
-  const reason = item.alertLevel.includes('zems rating') ? '
-Iemesls: ļoti tuvu/budžetā, bet atsauksmes vājas.' : item.alertLevel.includes('nav rating') ? '
-Iemesls: budžetā, bet atsauksmes nav redzamas.' : '';
-  return item.alertLevel + ' - Score ' + item.score + '/100
-' + item.name + '
-Cena: ' + item.totalEur + ' EUR kopā
-Cena/cilv./nakts: ' + item.pricePerPersonNight + ' EUR
-Cilvēki: ' + item.adults + '
-Lokācija: ' + location + '
-Attālums: ' + distance + ' līdz Liepājas centram/festivāla zonai aptuveni
-Rating: ' + rating + reviews + '
-Free cancellation: ' + cancellation + reason + '
-Links: ' + item.url;
+  const reason = item.alertLevel.includes('zems rating')
+    ? '\nIemesls: ļoti tuvu/budžetā, bet atsauksmes vājas.'
+    : item.alertLevel.includes('nav rating')
+      ? '\nIemesls: budžetā, bet atsauksmes nav redzamas.'
+      : '';
+
+  return item.alertLevel + ' - Score ' + item.score + '/100'
+    + '\n' + item.name
+    + '\nCena: ' + item.totalEur + ' EUR kopā'
+    + '\nCena/cilv./nakts: ' + item.pricePerPersonNight + ' EUR'
+    + '\nCilvēki: ' + item.adults
+    + '\nLokācija: ' + location
+    + '\nAttālums: ' + distance + ' līdz Liepājas centram/festivāla zonai aptuveni'
+    + '\nRating: ' + rating + reviews
+    + '\nFree cancellation: ' + cancellation
+    + reason
+    + '\nLinks: ' + item.url;
 }
 
 export function formatErrorMessage(errorState) {
-  return 'BOT ERROR
-' + errorState.message + '
-Last successful check: ' + (errorState.lastSuccessAt ?? 'unknown');
+  return 'BOT ERROR\n' + errorState.message + '\nLast successful check: ' + (errorState.lastSuccessAt ?? 'unknown');
 }

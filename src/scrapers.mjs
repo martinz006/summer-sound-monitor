@@ -32,57 +32,85 @@ async function scrapeBooking(page, config, adults) {
   await gotoWithHardTimeout(page, bookingUrl(config, adults), config.runtime.navigationTimeoutMs);
   await waitForAnyCard(page, ["[data-testid='property-card']"], config.runtime.domTimeoutMs);
   return page.locator("[data-testid='property-card']").evaluateAll((cards, args) => {
+    function parseEuro(text) {
+      const matches = Array.from(String(text || '').matchAll(/€s?([0-9][0-9 .]*)/g));
+      if (!matches.length) return null;
+      const values = matches.map(m => parseInt(m[1].replace(/[ .]/g, ''), 10)).filter(Number.isFinite);
+      if (!values.length) return null;
+      return values[values.length - 1];
+    }
+
     return cards.slice(0, args.maxCards).map(card => {
       const text = card.innerText;
       const link = card.querySelector('a[href]')?.href;
-      const name = card.querySelector("[data-testid='title']")?.textContent?.trim() || text.split('\n').find(Boolean)?.trim() || 'Booking listing';
-      const priceMatch = text.replace(/\s/g, ' ').match(/€\s?([0-9][0-9 .]*)/);
-      const ratingMatch = text.match(/\b([0-9]\.[0-9])\b/);
-      const reviewsMatch = text.match(/([0-9][0-9, .]*)\s+(reviews|atsauks)/i);
-      const distanceMatch = text.match(/([0-9]+(?:[.,][0-9]+)?)\s*km/i);
+      const name = card.querySelector("[data-testid='title']")?.textContent?.trim() || text.split('
+').find(Boolean)?.trim() || 'Booking listing';
+      const priceText = card.querySelector("[data-testid='price-and-discounted-price']")?.textContent || '';
+      const totalEur = parseEuro(priceText) ?? parseEuro(text);
+      const ratingText = card.querySelector("[data-testid='review-score']")?.textContent || text;
+      const ratingMatch = ratingText.match(/([0-9].[0-9])/);
+      const reviewsMatch = text.match(/([0-9][0-9, .]*)s+(reviews|atsauks)/i);
+      const distanceText = card.querySelector("[data-testid='distance']")?.textContent || text;
+      const distanceMatch = distanceText.match(/([0-9]+(?:[.,][0-9]+)?)s*km/i);
       const freeCancellation = /free cancellation|bezmaksas atcel/i.test(text);
+      const location = card.querySelector("[data-testid='address']")?.textContent?.trim() || distanceText.trim() || null;
+      const distanceKm = distanceMatch ? Number(distanceMatch[1].replace(',', '.')) : null;
+      const isClearlyFar = distanceKm == null || distanceKm >= args.maxDistanceKm || /([1-9][0-9])\s*km\s*(from|no)\s*(liep|center|centre)/i.test(text);
       return {
         id: link,
         platform: 'booking',
         name,
         url: link,
-        totalEur: priceMatch ? parseInt(priceMatch[1].replace(/[ .]/g, ''), 10) : null,
+        totalEur,
         rating: ratingMatch ? Number(ratingMatch[1]) : null,
         reviewCount: reviewsMatch ? parseInt(reviewsMatch[1].replace(/[ ,.]/g, ''), 10) : null,
-        distanceKm: distanceMatch ? Number(distanceMatch[1].replace(',', '.')) : null,
-        freeCancellation
+        distanceKm,
+        location,
+        isClearlyFar,
+        freeCancellation,
+        priceSource: priceText || 'card text fallback'
       };
     });
-  }, { maxCards: config.runtime.maxCardsPerRun });
+  }, { maxCards: config.runtime.maxCardsPerRun, maxDistanceKm: config.search.maxDistanceKm });
 }
 
 async function scrapeAirbnb(page, config, adults) {
   await gotoWithHardTimeout(page, airbnbUrl(config, adults), config.runtime.navigationTimeoutMs);
   await waitForAnyCard(page, ["a[href*='/rooms/']", "[data-testid='card-container']"], config.runtime.domTimeoutMs);
   return page.locator("a[href*='/rooms/']").evaluateAll((links, args) => {
+    function parseEuro(text) {
+      const matches = Array.from(String(text || '').matchAll(/€s?([0-9][0-9 .]*)/g));
+      if (!matches.length) return null;
+      const values = matches.map(m => parseInt(m[1].replace(/[ .]/g, ''), 10)).filter(Number.isFinite);
+      if (!values.length) return null;
+      return values[values.length - 1];
+    }
+
     const seen = new Set();
     const out = [];
     for (const link of links) {
       const href = link.href;
-      const id = href.match(/\/rooms\/([0-9]+)/)?.[1] || href;
+      const id = href.match(//rooms/([0-9]+)/)?.[1] || href;
       if (seen.has(id)) continue;
       seen.add(id);
       const card = link.closest("[data-testid='card-container']") || link.parentElement;
       const text = card?.innerText || link.innerText || '';
-      const name = text.split('\n').find(line => line.trim().length > 5)?.trim() || 'Airbnb listing';
-      const priceMatch = text.replace(/\s/g, ' ').match(/€\s?([0-9][0-9 .]*)/);
-      const ratingMatch = text.match(/\b([0-5]\.[0-9]{1,2})\b/);
-      const reviewsMatch = text.match(/([0-9][0-9, .]*)\s+(reviews|atsauks)/i);
+      const name = text.split('
+').find(line => line.trim().length > 5)?.trim() || 'Airbnb listing';
+      const ratingMatch = text.match(/([0-5].[0-9]{1,2})/);
+      const reviewsMatch = text.match(/([0-9][0-9, .]*)s+(reviews|atsauks)/i);
       const freeCancellation = /free cancellation|bezmaksas atcel|pay €0 today/i.test(text);
       out.push({
         id,
         platform: 'airbnb',
         name,
         url: href,
-        totalEur: priceMatch ? parseInt(priceMatch[1].replace(/[ .]/g, ''), 10) : null,
+        totalEur: parseEuro(text),
         rating: ratingMatch ? Number(ratingMatch[1]) : null,
         reviewCount: reviewsMatch ? parseInt(reviewsMatch[1].replace(/[ ,.]/g, ''), 10) : null,
         distanceKm: null,
+        location: null,
+        isClearlyFar: true,
         freeCancellation
       });
       if (out.length >= args.maxCards) break;

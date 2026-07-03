@@ -1,0 +1,32 @@
+{
+  "telegram": {
+    "botToken": "SET_IN_RENDER_ENV",
+    "dealChatIds": [
+      "6364959649",
+      "6164517954"
+    ],
+    "errorChatIds": [
+      "6364959649"
+    ]
+  },
+  "search": {
+    "checkIn": "2026-07-31",
+    "checkOut": "2026-08-02",
+    "nights": 2,
+    "adults": [
+      2,
+      3,
+      4
+    ],
+    "maxTotalEur": 300,
+    "maxDistanceKm": 8,
+    "festivalAnchor": "Liepaja beach / Jurmalas parks"
+  },
+  "runtime": {
+    "intervalMinutes": 10,
+    "maxCardsPerRun": 8,
+    "navigationTimeoutMs": 9000,
+    "domTimeoutMs": 5000,
+    "consecutiveFailureAlertAfter": 3
+  }
+}

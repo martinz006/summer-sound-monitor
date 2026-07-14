@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 42,
+  "rotationIndex": 43,
   "seen": {
     "booking:https://www.booking.com/hotel/lv/glempinga-telts-smilga.html?aid=304142&label=gen173nr-10CAQoggJCF3NlYXJjaF9saWVwxIFqYSwgbGF0dmlhSDNYBGiyAogBAZgBM7gBF8gBDNgBA-gBAfgBAYgCAagCAbgCmYOh0gbAAgHSAiQ2NTIzMTY0Zi02OTlhLTRmMWMtYmVlZC1kOTllYjg1NDJmY2TYAgHgAgE&ucfs=1&arphpl=1&checkin=2026-07-31&checkout=2026-08-02&group_adults=2&req_adults=2&no_rooms=1&group_children=0&req_children=0&hpos=1&hapos=1&sr_order=price&srpvid=eec8a30cc454037e&srepoch=1783120283&all_sr_blocks=857239802_394002739_2_0_0&highlighted_blocks=857239802_394002739_2_0_0&matching_block_id=857239802_394002739_2_0_0&sr_pri_blocks=857239802_394002739_2_0_0__17411&from=searchresults": {
       "name": "KEMPINGS Kareļi",
@@ -51,5 +51,5 @@
     }
   },
   "consecutiveFailures": 0,
-  "lastSuccessAt": "2026-07-13T21:31:17.320Z"
+  "lastSuccessAt": "2026-07-14T05:58:41.739Z"
 }
